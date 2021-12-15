@@ -112,15 +112,27 @@ if [ "$SINGLE" = false ]; then
 cat >> "$KIND_CONFIG_FILE" <<EOF
 nodes:
 - role: control-plane
+  extraMounts:
+    - hostPath: /etc/ssl/certs
+      containerPath: /etc/ssl/certs
 - role: worker
+  extraMounts:
+    - hostPath: /etc/ssl/certs
+      containerPath: /etc/ssl/certs
 - role: worker
+  extraMounts:
+    - hostPath: /etc/ssl/certs
+      containerPath: /etc/ssl/certs
 EOF
 fi
 
 echo "Kind configuration file ($KIND_CONFIG_FILE): "
 cat "$KIND_CONFIG_FILE"
 
-kind create cluster --config "$KIND_CONFIG_FILE" --name "$CLUSTER_NAME"
+# use --retain and kind export logs to debug
+# see https://github.com/kubernetes-sigs/kind/issues/2323 if kubelet cgroup not exists error. waiting for kind 0.12.0... or use HEAD
+#--image kindest/node:v1.22.4 temporaire le temps de faire marcher kind en attendant la 0.12.0
+kind create cluster --config "$KIND_CONFIG_FILE" --name "$CLUSTER_NAME" --image kindest/node:v1.22.4
 
 if [ "$PSP" = true ]; then
   kubectl apply -f $DIR/psp
